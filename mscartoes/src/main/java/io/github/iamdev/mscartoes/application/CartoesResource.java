@@ -32,7 +32,7 @@ public class CartoesResource {
 	}
 	
 	@PostMapping
-	public ResponseEntity cadastra( @RequestBody CartaoSaveRequest request ) {
+	public ResponseEntity<?> cadastra( @RequestBody CartaoSaveRequest request ) {
 		Cartao cartao = request.toModel();
 		cartaoService.save(cartao);
 		return ResponseEntity.status(HttpStatus.CREATED).build();
