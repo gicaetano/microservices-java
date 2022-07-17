@@ -2,23 +2,30 @@ package io.github.iamdev.msavaliadorcredito.application;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import feign.FeignException;
 import io.github.iamdev.msavaliadorcredito.application.ex.DadosClienteNotFoundException;
 import io.github.iamdev.msavaliadorcredito.application.ex.ErroComunicacaoMicrosservicesException;
+import io.github.iamdev.msavaliadorcredito.application.ex.ErrosolicitacaoCartaoException;
 import io.github.iamdev.msavaliadorcredito.domain.model.Cartao;
 import io.github.iamdev.msavaliadorcredito.domain.model.CartaoAprovado;
 import io.github.iamdev.msavaliadorcredito.domain.model.CartaoCliente;
 import io.github.iamdev.msavaliadorcredito.domain.model.DadosCliente;
+import io.github.iamdev.msavaliadorcredito.domain.model.DadosSolicitacaoEmissaoCartao;
+import io.github.iamdev.msavaliadorcredito.domain.model.ProtocoloSolicitacaoCartao;
 import io.github.iamdev.msavaliadorcredito.domain.model.RetornoAvaliacaoCliente;
 import io.github.iamdev.msavaliadorcredito.domain.model.SituacaoCliente;
 import io.github.iamdev.msavaliadorcredito.infra.clients.CartoesResourceClient;
 import io.github.iamdev.msavaliadorcredito.infra.clients.ClienteResourceClient;
+import io.github.iamdev.msavaliadorcredito.infra.mqueue.SolicitacaoEmissaoCartaoPublisher;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -27,6 +34,7 @@ public class AvaliadorCreditoService {
 	
 	private final ClienteResourceClient clientesClient;
 	private final CartoesResourceClient cartoesClient;
+	private final SolicitacaoEmissaoCartaoPublisher emissaoCartaoPublisher;
 	
 	public SituacaoCliente obtersituacaoCliente(String cpf) throws DadosClienteNotFoundException, 
 																   ErroComunicacaoMicrosservicesException {
@@ -84,6 +92,16 @@ public class AvaliadorCreditoService {
 			throw new ErroComunicacaoMicrosservicesException(e.getMessage(),status);
 		}
 		
+	}
+	
+	public ProtocoloSolicitacaoCartao solicitarEmissaoDeCartao(DadosSolicitacaoEmissaoCartao dados) {
+		try {
+			emissaoCartaoPublisher.solicitarCartao(dados);
+			var protocolo = UUID.randomUUID().toString();
+			return new ProtocoloSolicitacaoCartao(protocolo);
+		} catch (Exception e) {
+			throw new ErrosolicitacaoCartaoException(e.getMessage());
+		}
 	}
 	
 }
