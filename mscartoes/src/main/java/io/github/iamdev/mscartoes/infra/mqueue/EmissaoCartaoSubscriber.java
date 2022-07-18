@@ -4,8 +4,6 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.iamdev.mscartoes.domain.Cartao;
@@ -14,9 +12,11 @@ import io.github.iamdev.mscartoes.domain.DadosSolicitacaoEmissaoCartao;
 import io.github.iamdev.mscartoes.infra.repository.CartaoRepository;
 import io.github.iamdev.mscartoes.infra.repository.ClienteCartaoRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @AllArgsConstructor
+@Slf4j
 public class EmissaoCartaoSubscriber {
 	
 	private final CartaoRepository cartaoRepository;
@@ -37,7 +37,7 @@ public class EmissaoCartaoSubscriber {
 			clienteCartaoRepository.save(clienteCartao);
 			
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Erro ao receber solicitacao de emissao de cartao: {} ", e.getMessage());
 		}
 	}
 }
